@@ -1,15 +1,18 @@
 package com.example.grandhis.snapshot;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.nfc.NdefMessage;
 import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.grandhis.snapshot.R;
@@ -50,15 +53,17 @@ public class MeetListActivity extends Activity {
         else
         {
             String fbUrlString = "http://www.facebook.com";
+
+            NdefFriendAdapter ndefFriendAdapter = new NdefFriendAdapter();
+            nfcAdapter.setNdefPushMessageCallback(ndefFriendAdapter, this);
+
             URL facebookURL;
             try {
                 facebookURL = new URL(fbUrlString);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
-            //NdefRecord ndefRecord = new NdefRecord(facebookURL);
-            //NdefMessage ndefMessage = new NdefMessage(ndefRecord);
-            //nfcAdapter.setNdefPushMessage();
+
         }
 
         Button meetAPeep = (Button) findViewById(R.id.meetButton);
@@ -78,5 +83,15 @@ public class MeetListActivity extends Activity {
         itemList.add(item);
         friendAdapter.notifyDataSetChanged();
 
+    }
+
+    void processIntent(Intent intent) {
+        Log.i("listEntry", "entered processIntent");
+        Parcelable[] rawMsgs = intent.getParcelableArrayExtra(
+                NfcAdapter.EXTRA_NDEF_MESSAGES);
+        // only one message sent during the beam
+        NdefMessage msg = (NdefMessage) rawMsgs[0];
+        // record 0 contains the MIME type, record 1 is the AAR, if present
+        addNewListEntry(new String(msg.getRecords()[0].getPayload()), "facebook.com", null);
     }
 }
